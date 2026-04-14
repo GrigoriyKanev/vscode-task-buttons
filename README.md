@@ -4,25 +4,25 @@ A VSCode extension that adds configurable task buttons to the status bar for qui
 
 ## Features
 
-- **Workspace-specific configuration**: Each workspace can have its own set of task buttons
+- **User-specific configuration**: Each user can keep their own set of task buttons in VS Code settings
 - **Configurable buttons**: Customize button names, icons, and tooltips
-- **Live configuration updates**: Changes to the configuration file are automatically applied
+- **Live configuration updates**: Changes to user settings are automatically applied
 - **Task integration**: Executes tasks directly from your workspace's `tasks.json`
 
 ## Setup
 
 1. Install the extension
-2. Create a `.vscode/task-buttons.json` file in your workspace root
+2. Open your VS Code user settings JSON
 3. Configure your task buttons (see configuration below)
 4. The buttons will automatically appear in the status bar
 
 ## Configuration
 
-Create a `.vscode/task-buttons.json` file in your workspace with the following structure:
+Add the following setting to your user settings JSON:
 
 ```json
 {
-  "buttons": [
+  "taskButtons.buttons": [
     {
       "name": "Build",
       "task": "build",
@@ -77,10 +77,10 @@ Create a `.vscode/task-buttons.json` file in your workspace with the following s
 }
 ```
 
-### 2. task-buttons.json
+### 2. User settings
 ```json
 {
-  "buttons": [
+  "taskButtons.buttons": [
     {
       "name": "Build",
       "task": "build",
@@ -112,10 +112,10 @@ The extension provides the following commands:
 ## How It Works
 
 1. The extension loads on VSCode startup
-2. It looks for `.vscode/task-buttons.json` in the current workspace
+2. It reads `taskButtons.buttons` from your user settings
 3. For each button configuration, it creates a status bar item
 4. When clicked, the button executes the corresponding task from `tasks.json`
-5. The extension watches for changes to the configuration file and updates buttons automatically
+5. The extension watches for changes to that setting and updates buttons automatically
 
 ## Development
 

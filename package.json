@@ -31,6 +31,42 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "Simple Task Buttons",
+      "properties": {
+        "taskButtons.buttons": {
+          "type": "array",
+          "scope": "window",
+          "default": [],
+          "markdownDescription": "Task buttons shown in the status bar. Configure this in User settings to keep the buttons per user instead of per workspace.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "task"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Display name for the button"
+              },
+              "task": {
+                "type": "string",
+                "description": "Name of the task from tasks.json to execute"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon to display before the button name"
+              },
+              "tooltip": {
+                "type": "string",
+                "description": "Tooltip text shown when hovering over the button"
+              }
+            }
+          }
+        }
+      }
+    },
     "commands": [
       {
         "command": "taskButtons.refresh",

@@ -1,6 +1,4 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
-import * as path from 'path';
 
 interface TaskButtonConfig {
     name: string;
@@ -15,7 +13,6 @@ interface TaskButtonsConfig {
 
 class TaskButtonManager {
     private statusBarItems: vscode.StatusBarItem[] = [];
-    private configWatcher: vscode.FileSystemWatcher | undefined;
     private context: vscode.ExtensionContext;
 
     constructor(context: vscode.ExtensionContext) {
@@ -29,7 +26,7 @@ class TaskButtonManager {
 
     private async loadAndCreateButtons() {
         this.clearExistingButtons();
-        
+
         const config = await this.loadConfig();
         if (!config) {
             return;
@@ -41,24 +38,17 @@ class TaskButtonManager {
     }
 
     private async loadConfig(): Promise<TaskButtonsConfig | null> {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders || workspaceFolders.length === 0) {
+        const config = vscode.workspace.getConfiguration('taskButtons');
+        const inspectedConfig = config.inspect<TaskButtonConfig[]>('buttons');
+        const buttons = inspectedConfig?.globalValue;
+
+        if (!buttons || buttons.length === 0) {
             return null;
         }
 
-        const configPath = path.join(workspaceFolders[0].uri.fsPath, '.vscode', 'task-buttons.json');
-        
-        try {
-            if (!fs.existsSync(configPath)) {
-                return null;
-            }
-
-            const configContent = fs.readFileSync(configPath, 'utf8');
-            return JSON.parse(configContent) as TaskButtonsConfig;
-        } catch (error) {
-            vscode.window.showErrorMessage(`Failed to load task buttons config: ${error}`);
-            return null;
-        }
+        return {
+            buttons
+        };
     }
 
     private createStatusBarButton(config: TaskButtonConfig) {
@@ -83,7 +73,7 @@ class TaskButtonManager {
         try {
             const tasks = await vscode.tasks.fetchTasks();
             const task = tasks.find(t => t.name === taskName);
-            
+
             if (!task) {
                 vscode.window.showErrorMessage(`Task "${taskName}" not found in tasks.json`);
                 return;
@@ -97,32 +87,13 @@ class TaskButtonManager {
     }
 
     private setupConfigWatcher() {
-        const workspaceFolders = vscode.workspace.workspaceFolders;
-        if (!workspaceFolders || workspaceFolders.length === 0) {
-            return;
-        }
-
-        const configPath = path.join(workspaceFolders[0].uri.fsPath, '.vscode', 'task-buttons.json');
-        const configPattern = new vscode.RelativePattern(
-            workspaceFolders[0],
-            '.vscode/task-buttons.json'
+        this.context.subscriptions.push(
+            vscode.workspace.onDidChangeConfiguration(event => {
+                if (event.affectsConfiguration('taskButtons.buttons')) {
+                    this.loadAndCreateButtons();
+                }
+            })
         );
-
-        this.configWatcher = vscode.workspace.createFileSystemWatcher(configPattern);
-        
-        this.configWatcher.onDidChange(() => {
-            this.loadAndCreateButtons();
-        });
-
-        this.configWatcher.onDidCreate(() => {
-            this.loadAndCreateButtons();
-        });
-
-        this.configWatcher.onDidDelete(() => {
-            this.clearExistingButtons();
-        });
-
-        this.context.subscriptions.push(this.configWatcher);
     }
 
     private clearExistingButtons() {
@@ -132,9 +103,6 @@ class TaskButtonManager {
 
     public dispose() {
         this.clearExistingButtons();
-        if (this.configWatcher) {
-            this.configWatcher.dispose();
-        }
     }
 
     public getExecuteTaskCommand() {
@@ -155,7 +123,7 @@ let taskButtonManager: TaskButtonManager;
 
 export function activate(context: vscode.ExtensionContext) {
     taskButtonManager = new TaskButtonManager(context);
-    
+
     context.subscriptions.push(
         taskButtonManager.getExecuteTaskCommand(),
         taskButtonManager.getRefreshCommand()
