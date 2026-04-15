@@ -1,6 +1,6 @@
 {
-  "name": "simple-task-buttons",
-  "displayName": "Simple Task Buttons",
+  "name": "status-bar-task-buttons",
+  "displayName": "Status bar task buttons",
   "description": "Add configurable task buttons to the status bar for quick execution of user-defined tasks from VS Code settings",
   "keywords": [
     "tasks",

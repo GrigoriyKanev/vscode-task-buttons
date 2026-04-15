@@ -1,0 +1,6 @@
+src/**
+.vscode/**
+.gitignore
+CLAUDE.md
+example-task-buttons.json
+tsconfig.json
