@@ -1,7 +1,7 @@
 {
-  "name": "task-buttons",
+  "name": "simple-task-buttons",
   "displayName": "Simple Task Buttons",
-  "description": "Add configurable task buttons to the status bar for quick execution of workspace tasks",
+  "description": "Add configurable task buttons to the status bar for quick execution of user-defined tasks from VS Code settings",
   "keywords": [
     "tasks",
     "status bar",
@@ -13,14 +13,14 @@
     "task runner"
   ],
   "version": "1.0.1",
-  "publisher": "Condor304",
+  "publisher": "GKanev",
   "icon": "icon.png",
   "engines": {
     "vscode": "^1.74.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/condor304/vscode-task-buttons.git"
+    "url": "https://github.com/GrigoriyKanev/vscode-task-buttons"
   },
   "license": "MIT",
   "categories": [
@@ -38,7 +38,7 @@
           "type": "array",
           "scope": "window",
           "default": [],
-          "markdownDescription": "Task buttons shown in the status bar. Configure this in User settings to keep the buttons per user instead of per workspace.",
+          "markdownDescription": "Task buttons shown in the status bar. Configure this in User settings so each user keeps their own buttons and command mappings.",
           "items": {
             "type": "object",
             "required": [
@@ -52,7 +52,7 @@
               },
               "task": {
                 "type": "string",
-                "description": "Name of the task from tasks.json to execute"
+                "description": "Name of the task defined in taskButtons.tasks"
               },
               "icon": {
                 "type": "string",
@@ -61,6 +61,40 @@
               "tooltip": {
                 "type": "string",
                 "description": "Tooltip text shown when hovering over the button"
+              }
+            }
+          }
+        },
+        "taskButtons.tasks": {
+          "type": "array",
+          "scope": "window",
+          "default": [],
+          "markdownDescription": "User-defined tasks that buttons can run. Each task is stored in User settings and executed directly from an inline command.",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "command"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Task name referenced by taskButtons.buttons"
+              },
+              "command": {
+                "type": "string",
+                "description": "Executable to run. Defaults to powershell.exe when omitted."
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Optional command arguments"
+              },
+              "script": {
+                "type": "string",
+                "description": "Optional inline script passed to the executable with -Command"
               }
             }
           }

@@ -1,34 +1,22 @@
 {
-  "buttons": [
+  "taskButtons.tasks": [
     {
-      "name": "Build",
-      "task": "build",
-      "icon": "🔨",
-      "tooltip": "Build the project"
-    },
+      "name": "git-clean-gone-branches",
+      "command": "powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass"
+      ],
+      "script": "if ((git branch --show-current) -ne 'master') { git switch master }; git fetch --prune; $branches = git for-each-ref --format='%(refname:short)%09%(upstream:track)' refs/heads | ForEach-Object { $parts = $_ -split \"`t\", 2; if ($parts.Count -lt 2) { return }; [pscustomobject]@{ Branch = $parts[0].Trim(); Track = $parts[1].Trim() } } | Where-Object { $_.Track -eq '[gone]' -and $_.Branch -ne 'master' }; foreach ($branch in $branches) { git branch -d $branch.Branch }"
+    }
+  ],
+  "taskButtons.buttons": [
     {
-      "name": "Test",
-      "task": "test",
-      "icon": "🧪",
-      "tooltip": "Run all tests"
-    },
-    {
-      "name": "Dev",
-      "task": "dev",
-      "icon": "🚀",
-      "tooltip": "Start development server"
-    },
-    {
-      "name": "Lint",
-      "task": "lint",
-      "icon": "✨",
-      "tooltip": "Run linter"
-    },
-    {
-      "name": "Clean",
-      "task": "clean",
-      "icon": "🧹",
-      "tooltip": "Clean build artifacts"
+      "name": "Git cleanup",
+      "task": "git-clean-gone-branches",
+      "icon": "🌿",
+      "tooltip": "Switch to master, fetch --prune, delete branches with gone upstream"
     }
   ]
 }

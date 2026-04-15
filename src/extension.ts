@@ -7,13 +7,22 @@ interface TaskButtonConfig {
     tooltip?: string;
 }
 
+interface UserTaskConfig {
+    name: string;
+    command?: string;
+    args?: string[];
+    script?: string;
+}
+
 interface TaskButtonsConfig {
     buttons: TaskButtonConfig[];
+    tasks: UserTaskConfig[];
 }
 
 class TaskButtonManager {
     private statusBarItems: vscode.StatusBarItem[] = [];
     private context: vscode.ExtensionContext;
+    private tasks: UserTaskConfig[] = [];
 
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
@@ -32,6 +41,8 @@ class TaskButtonManager {
             return;
         }
 
+        this.tasks = config.tasks;
+
         for (const buttonConfig of config.buttons) {
             this.createStatusBarButton(buttonConfig);
         }
@@ -39,15 +50,16 @@ class TaskButtonManager {
 
     private async loadConfig(): Promise<TaskButtonsConfig | null> {
         const config = vscode.workspace.getConfiguration('taskButtons');
-        const inspectedConfig = config.inspect<TaskButtonConfig[]>('buttons');
-        const buttons = inspectedConfig?.globalValue;
+        const buttons = config.get<TaskButtonConfig[]>('buttons') ?? [];
+        const tasks = config.get<UserTaskConfig[]>('tasks') ?? [];
 
-        if (!buttons || buttons.length === 0) {
+        if (buttons.length === 0 && tasks.length === 0) {
             return null;
         }
 
         return {
-            buttons
+            buttons,
+            tasks
         };
     }
 
@@ -71,13 +83,24 @@ class TaskButtonManager {
 
     private async executeTask(taskName: string) {
         try {
-            const tasks = await vscode.tasks.fetchTasks();
-            const task = tasks.find(t => t.name === taskName);
+            const taskConfig = this.tasks.find(task => task.name === taskName);
 
-            if (!task) {
-                vscode.window.showErrorMessage(`Task "${taskName}" not found in tasks.json`);
+            if (!taskConfig) {
+                vscode.window.showErrorMessage(`Task "${taskName}" not found in user settings`);
                 return;
             }
+
+            const command = taskConfig.command ?? 'powershell.exe';
+            const args = taskConfig.args ?? [];
+            const executionArgs = taskConfig.script ? [...args, '-Command', taskConfig.script] : args;
+            const execution = new vscode.ProcessExecution(command, executionArgs);
+            const task = new vscode.Task(
+                { type: 'task-buttons', name: taskConfig.name },
+                vscode.TaskScope.Workspace,
+                taskConfig.name,
+                'task-buttons',
+                execution
+            );
 
             await vscode.tasks.executeTask(task);
             vscode.window.showInformationMessage(`Executing task: ${taskName}`);
@@ -89,7 +112,7 @@ class TaskButtonManager {
     private setupConfigWatcher() {
         this.context.subscriptions.push(
             vscode.workspace.onDidChangeConfiguration(event => {
-                if (event.affectsConfiguration('taskButtons.buttons')) {
+                if (event.affectsConfiguration('taskButtons.buttons') || event.affectsConfiguration('taskButtons.tasks')) {
                     this.loadAndCreateButtons();
                 }
             })
