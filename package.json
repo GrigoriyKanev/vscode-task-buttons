@@ -12,7 +12,7 @@
     "toolbar",
     "task runner"
   ],
-  "version": "1.0.1",
+  "version": "1.0.2",
   "publisher": "GKanev",
   "icon": "icon.png",
   "engines": {
