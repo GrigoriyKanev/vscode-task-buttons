@@ -35,16 +35,6 @@ Add the following settings to your user settings JSON:
       "name": "dev",
       "command": "npm run dev"
     },
-    {
-      "name": "git-clean-gone-branches",
-      "command": "powershell.exe",
-      "args": [
-        "-NoProfile",
-        "-ExecutionPolicy",
-        "Bypass"
-      ],
-      "script": "if ((git branch --show-current) -ne 'master') { git switch master }; git fetch --prune; $branches = git for-each-ref --format='%(refname:short)%09%(upstream:track)' refs/heads | ForEach-Object { $parts = $_ -split \"`t\", 2; if ($parts.Count -lt 2) { return }; [pscustomobject]@{ Branch = $parts[0].Trim(); Track = $parts[1].Trim() } } | Where-Object { $_.Track -eq '[gone]' -and $_.Branch -ne 'master' }; foreach ($branch in $branches) { git branch -d $branch.Branch }"
-    }
   ],
   "taskButtons.buttons": [
     {
@@ -83,18 +73,6 @@ Add the following settings to your user settings JSON:
 {
   "taskButtons.tasks": [
     {
-      "name": "build",
-      "command": "npm run build"
-    },
-    {
-      "name": "test",
-      "command": "npm test"
-    },
-    {
-      "name": "dev",
-      "command": "npm run dev"
-    },
-    {
       "name": "git-clean-gone-branches",
       "command": "powershell.exe",
       "args": [
@@ -102,27 +80,15 @@ Add the following settings to your user settings JSON:
         "-ExecutionPolicy",
         "Bypass"
       ],
-      "script": "if ((git branch --show-current) -ne 'master') { git switch master }; git fetch --prune; $branches = git for-each-ref --format='%(refname:short)%09%(upstream:track)' refs/heads | ForEach-Object { $parts = $_ -split \"`t\", 2; if ($parts.Count -lt 2) { return }; [pscustomobject]@{ Branch = $parts[0].Trim(); Track = $parts[1].Trim() } } | Where-Object { $_.Track -eq '[gone]' -and $_.Branch -ne 'master' }; foreach ($branch in $branches) { git branch -d $branch.Branch }"
+      "script": "if ((git branch --show-current) -ne \"master\") { git switch master }; git fetch --prune; $branches = git for-each-ref --format=\"%(refname:short)%09%(upstream:track)\" refs/heads | ForEach-Object { $parts = $_ -split \"`t\", 2; if ($parts.Count -ge 2) { [pscustomobject]@{ Branch = $parts[0].Trim(); Track = $parts[1].Trim() } } } | Where-Object { $_.Track -eq \"[gone]\" -and $_.Branch -ne \"master\" }; foreach ($branch in $branches) { git branch -D $branch.Branch }"
     }
   ],
   "taskButtons.buttons": [
     {
-      "name": "Build",
-      "task": "build",
-      "icon": "🔨",
-      "tooltip": "Build the project"
-    },
-    {
-      "name": "Test",
-      "task": "test",
-      "icon": "🧪",
-      "tooltip": "Run all tests"
-    },
-    {
-      "name": "Dev Server",
-      "task": "dev",
-      "icon": "🚀",
-      "tooltip": "Start development server"
+      "name": "Git cleanup",
+      "task": "git-clean-gone-branches",
+      "icon": "🌿",
+      "tooltip": "Switch to master, fetch --prune, delete branches with gone upstream"
     }
   ]
 }
